@@ -133,6 +133,9 @@ int16_t packetnum = 0;  // packet counter, we increment per xmission
 
 
 void loop() {
+      uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
+      
+      uint8_t len = sizeof(buf);
       float child_voltage = *((float*)buf);
       float voltage = analogRead(BATTERY_PIN);
       voltage = voltage * (3.3 / 1024) * 2; // Assuming you have a 1:2 voltage divider
@@ -141,7 +144,7 @@ void loop() {
       Serial.println(" V");
 
       Serial.print("CHILD Battery Voltage: ");
-      Serial.print(voltage);
+      Serial.print(child_voltage);
       Serial.println(" V");
 
 
