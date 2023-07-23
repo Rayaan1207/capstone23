@@ -16,7 +16,13 @@
 #define RFM95_RST  17
 
 
+#define BATTERY_PIN A0
+#define RED_LED 13
+#define BLUE_LED 11
+#define GREEN_LED 10
+#define LED_BUTTON A
 
+int buttonState = 0;  // variable for reading the pushbutton status
 
 
 
@@ -27,6 +33,21 @@
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 void setup() {
+
+
+  pinMode(BATTERY_PIN, INPUT);
+  pinMode(LED_BUTTON, INPUT);
+
+  pinMode(RED_LED, OUTPUT);
+  pinMode(BLUE_LED , OUTPUT);
+  pinMode(GREEN_LED, OUTPUT);
+
+ //setup led to default off
+    digitalWrite(RED_LED, HIGH); 
+    digitalWrite(BLUE_LED , HIGH); 
+    digitalWrite(GREEN_LED, HIGH); 
+
+
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
   pinMode(12, OUTPUT);
@@ -69,6 +90,40 @@ int16_t packetnum = 0;  // packet counter, we increment per xmission
 
 void loop() {
   delay(1000); // Wait 1 second between transmits, could also 'sleep' here!
+
+  buttonState = digitalRead(LED_BUTTON);
+
+  float voltage = analogRead(BATTERY_PIN);
+  voltage = voltage * (3.3 / 1024) * 2; // Assuming you have a 1:2 voltage divider
+  Serial.print("Battery Voltage: ");
+  Serial.print(voltage);
+  Serial.println(" V");
+
+if(buttonState  == HIGH){
+  // Control the LED
+  if(voltage > 4) {
+    digitalWrite(RED_LED, HIGH); 
+    digitalWrite(BLUE_LED , HIGH); 
+    digitalWrite(GREEN_LED, LOW);  
+  } 
+else if(voltage > 1 && voltage < 3.5) {
+    digitalWrite(RED_LED, HIGH); 
+    digitalWrite(BLUE_LED , LOW); 
+    digitalWrite(GREEN_LED, HIGH); 
+  } 
+else {
+    digitalWrite(RED_LED, LOW); 
+    digitalWrite(BLUE_LED, HIGH); 
+    digitalWrite(GREEN_LED, HIGH);  
+}
+    delay(3000);
+ //turn off led
+    digitalWrite(RED_LED, HIGH); 
+    digitalWrite(BLUE_LED , HIGH); 
+    digitalWrite(GREEN_LED, HIGH); 
+   
+}
+
   Serial.println("Transmitting..."); // Send a message to rf95_server
 
   char radiopacket[20] = "Hello World #      ";
