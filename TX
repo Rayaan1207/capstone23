@@ -133,11 +133,63 @@ int16_t packetnum = 0;  // packet counter, we increment per xmission
 
 
 void loop() {
-  delay(1000); // Wait 1 second between transmits, could also 'sleep' here!
 
 
   buttonState = digitalRead(LED_BUTTON);
+  if(buttonState  == 1){
+  Serial.println("BUTTON IS PRESSED");
+  // Control the LED
+   // Control the LED
+   if(voltage > 4) {
+    Serial.println("ADULT LED IS GREEN);
+    digitalWrite(RED_LED, HIGH); 
+    digitalWrite(BLUE_LED , HIGH); 
+    digitalWrite(GREEN_LED, LOW);  
+  } 
+else if(voltage > 1 && voltage < 3.5) {
+    Serial.println("ADULT LED IS YELLOW);
+    digitalWrite(RED_LED, HIGH); 
+    digitalWrite(BLUE_LED , LOW); 
+    digitalWrite(GREEN_LED, HIGH); 
+  } 
+else {
+    Serial.println("ADULT LED IS YELLOW);
+    digitalWrite(RED_LED, LOW); 
+    digitalWrite(BLUE_LED, HIGH); 
+    digitalWrite(GREEN_LED, HIGH);  
+}
 
+
+
+
+   if(child_voltage > 4) {
+    digitalWrite(CHILD_RED_LED, HIGH); 
+    digitalWrite(CHILD_BLUE_LED , HIGH); 
+    digitalWrite(CHILD_GREEN_LED, LOW);  
+  } 
+else if(child_voltage > 1 && child_voltage < 3.5) {
+    digitalWrite(CHILD_RED_LED, HIGH); 
+    digitalWrite(CHILD_BLUE_LED , LOW); 
+    digitalWrite(CHILD_GREEN_LED, HIGH); 
+  } 
+else {
+    digitalWrite(CHILD_RED_LED, LOW); 
+    digitalWrite(CHILD_BLUE_LED, HIGH); 
+    digitalWrite(CHILD_GREEN_LED, HIGH);  
+}
+
+    delay(3000);
+ //turn off led
+    digitalWrite(RED_LED, HIGH); 
+    digitalWrite(BLUE_LED , HIGH); 
+    digitalWrite(CHILD_GREEN_LED, HIGH); 
+
+
+    digitalWrite(CHILD_RED_LED, HIGH); 
+    digitalWrite(CHILD_BLUE_LED , HIGH); 
+    digitalWrite(CHILD_GREEN_LED, HIGH); 
+   
+}
 
 
 
@@ -187,58 +239,7 @@ void loop() {
 
 
 
-     if(buttonState  == HIGH){
-  Serial.println("BUTTON IS PRESSED");
-  // Control the LED
-   // Control the LED
-   if(voltage > 4) {
 
-    digitalWrite(RED_LED, HIGH); 
-    digitalWrite(BLUE_LED , HIGH); 
-    digitalWrite(GREEN_LED, LOW);  
-  } 
-else if(voltage > 1 && voltage < 3.5) {
-    digitalWrite(RED_LED, HIGH); 
-    digitalWrite(BLUE_LED , LOW); 
-    digitalWrite(GREEN_LED, HIGH); 
-  } 
-else {
-    digitalWrite(RED_LED, LOW); 
-    digitalWrite(BLUE_LED, HIGH); 
-    digitalWrite(GREEN_LED, HIGH);  
-}
-
-
-
-
-   if(child_voltage > 4) {
-    digitalWrite(CHILD_RED_LED, HIGH); 
-    digitalWrite(CHILD_BLUE_LED , HIGH); 
-    digitalWrite(CHILD_GREEN_LED, LOW);  
-  } 
-else if(child_voltage > 1 && child_voltage < 3.5) {
-    digitalWrite(CHILD_RED_LED, HIGH); 
-    digitalWrite(CHILD_BLUE_LED , LOW); 
-    digitalWrite(CHILD_GREEN_LED, HIGH); 
-  } 
-else {
-    digitalWrite(CHILD_RED_LED, LOW); 
-    digitalWrite(CHILD_BLUE_LED, HIGH); 
-    digitalWrite(CHILD_GREEN_LED, HIGH);  
-}
-
-    delay(3000);
- //turn off led
-    digitalWrite(RED_LED, HIGH); 
-    digitalWrite(BLUE_LED , HIGH); 
-    digitalWrite(CHILD_GREEN_LED, HIGH); 
-
-
-    digitalWrite(CHILD_RED_LED, HIGH); 
-    digitalWrite(CHILD_BLUE_LED , HIGH); 
-    digitalWrite(CHILD_GREEN_LED, HIGH); 
-   
-}
 
 
       Serial.print("RSSI: ");
