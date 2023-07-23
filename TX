@@ -6,8 +6,12 @@
 // level messaging abilities.
 // It is designed to work with the other example Feather9x_RX
 
+
 #include <SPI.h>
 #include <RH_RF95.h>
+
+
+
 
 
 
@@ -16,66 +20,88 @@
 #define RFM95_RST  17
 
 
+
+
 #define BATTERY_PIN A0
 #define RED_LED 13
 #define BLUE_LED 11
 #define GREEN_LED 10
-#define LED_BUTTON A
+#define LED_BUTTON A1
+
 
 #define CHILD_RED_LED 9
 #define CHILD_BLUE_LED 6
 #define CHILD_GREEN_LED 5
 
+
 int buttonState = 0;  // variable for reading the pushbutton status
+
+
+
 
 
 
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 915.0
 
+
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
+
 void setup() {
+
+
 
 
   pinMode(BATTERY_PIN, INPUT);
   pinMode(LED_BUTTON, INPUT);
 
+
   pinMode(RED_LED, OUTPUT);
   pinMode(BLUE_LED , OUTPUT);
   pinMode(GREEN_LED, OUTPUT);
+
 
   pinMode(CHILD_RED_LED, OUTPUT);
   pinMode(CHILD_BLUE_LED , OUTPUT);
   pinMode(CHILD_GREEN_LED, OUTPUT);
 
 
- //setup led to default off
-    digitalWrite(RED_LED, HIGH); 
-    digitalWrite(BLUE_LED , HIGH); 
-    digitalWrite(GREEN_LED, HIGH); 
 
-    digitalWrite(CHILD_RED_LED, HIGH); 
-    digitalWrite(CHILD_BLUE_LED , HIGH); 
-    digitalWrite(CHILD_GREEN_LED, HIGH); 
+
+ //setup led to default off
+    digitalWrite(RED_LED, HIGH);
+    digitalWrite(BLUE_LED , HIGH);
+    digitalWrite(GREEN_LED, HIGH);
+
+
+    digitalWrite(CHILD_RED_LED, HIGH);
+    digitalWrite(CHILD_BLUE_LED , HIGH);
+    digitalWrite(CHILD_GREEN_LED, HIGH);
+
+
 
 
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
   pinMode(12, OUTPUT);
 
+
   Serial.begin(115200);
   while (!Serial) delay(1);
   delay(100);
 
+
   Serial.println("Feather LoRa TX Test!");
+
 
   // manual reset
   digitalWrite(RFM95_RST, LOW);
   delay(10);
   digitalWrite(RFM95_RST, HIGH);
   delay(10);
+
 
   while (!rf95.init()) {
     Serial.println("LoRa radio init failed");
@@ -84,6 +110,7 @@ void setup() {
   }
   Serial.println("LoRa radio init OK!");
 
+
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("setFrequency failed");
@@ -91,7 +118,9 @@ void setup() {
   }
   Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
 
+
   // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
+
 
   // The default transmitter power is 13dBm, using PA_BOOST.
   // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then
@@ -99,25 +128,34 @@ void setup() {
   rf95.setTxPower(23, false);
 }
 
+
 int16_t packetnum = 0;  // packet counter, we increment per xmission
+
 
 void loop() {
   delay(1000); // Wait 1 second between transmits, could also 'sleep' here!
+
 
   buttonState = digitalRead(LED_BUTTON);
 
 
 
+
+
+
   Serial.println("Transmitting..."); // Send a message to rf95_server
+
 
   char radiopacket[20] = "Hello World #      ";
   itoa(packetnum++, radiopacket+13, 10);
   Serial.print("Sending "); Serial.println(radiopacket);
   radiopacket[19] = 0;
 
+
   Serial.println("Sending...");
   delay(10);
   rf95.send((uint8_t *)radiopacket, 20);
+
 
   Serial.println("Waiting for packet to complete...");
   delay(10);
@@ -126,50 +164,63 @@ void loop() {
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
+
   Serial.println("Waiting for reply...");
   if (rf95.waitAvailableTimeout(1000)) {
     // Should be a reply message for us now
     if (rf95.recv(buf, &len)) {
       Serial.print("Got reply and the voltage of the child: ");
-      
-      float child_voltage = (float*)buf;
+     
+      float child_voltage = *((float*)buf);
       float voltage = analogRead(BATTERY_PIN);
       voltage = voltage * (3.3 / 1024) * 2; // Assuming you have a 1:2 voltage divider
-      Serial.print("Battery Voltage: ");
+      Serial.print("ADULT Battery Voltage: ");
+      Serial.print(voltage);
+      Serial.println(" V");
+
+      Serial.print("CHILD Battery Voltage: ");
       Serial.print(voltage);
       Serial.println(" V");
 
 
 
+
+
+
      if(buttonState  == HIGH){
   // Control the LED
-  if(voltage > 4) {
+   // Control the LED
+   if(voltage > 4) {
     digitalWrite(RED_LED, HIGH); 
     digitalWrite(BLUE_LED , HIGH); 
     digitalWrite(GREEN_LED, LOW);  
   } 
-  if(child_voltage > 4) {
-    digitalWrite(CHILD_RED_LED, HIGH); 
-    digitalWrite(CHILD_BLUE_LED , HIGH); 
-    digitalWrite(CHILD_GREEN_LED, LOW);  
-  } 
- if(voltage > 1 && voltage < 3.5) {
+else if(voltage > 1 && voltage < 3.5) {
     digitalWrite(RED_LED, HIGH); 
     digitalWrite(BLUE_LED , LOW); 
     digitalWrite(GREEN_LED, HIGH); 
   } 
- if(child_voltage > 1 && child_voltage < 3.5) {
-    digitalWrite(CHILD_RED_LED, HIGH); 
-    digitalWrite(CHILD_BLUE_LED , LOW); 
-    digitalWrite(CHILD_GREEN_LED, HIGH); 
-  } 
-
-if(voltage < 1) {
+else {
     digitalWrite(RED_LED, LOW); 
     digitalWrite(BLUE_LED, HIGH); 
     digitalWrite(GREEN_LED, HIGH);  
 }
-if(child_voltage < 1) {
+    delay(3000);
+
+
+
+
+   if(child_voltage > 4) {
+    digitalWrite(CHILD_RED_LED, HIGH); 
+    digitalWrite(CHILD_BLUE_LED , HIGH); 
+    digitalWrite(CHILD_GREEN_LED, LOW);  
+  } 
+else if(child_voltage > 1 && child_voltage < 3.5) {
+    digitalWrite(CHILD_RED_LED, HIGH); 
+    digitalWrite(CHILD_BLUE_LED , LOW); 
+    digitalWrite(CHILD_GREEN_LED, HIGH); 
+  } 
+else {
     digitalWrite(CHILD_RED_LED, LOW); 
     digitalWrite(CHILD_BLUE_LED, HIGH); 
     digitalWrite(CHILD_GREEN_LED, HIGH);  
@@ -178,14 +229,14 @@ if(child_voltage < 1) {
  //turn off led
     digitalWrite(RED_LED, HIGH); 
     digitalWrite(BLUE_LED , HIGH); 
-    digitalWrite(GREEN_LED, HIGH); 
+    digitalWrite(CHILD_GREEN_LED, HIGH); 
+
+
+    digitalWrite(CHILD_RED_LED, HIGH); 
+    digitalWrite(CHILD_BLUE_LED , HIGH); 
+    digitalWrite(CHILD_GREEN_LED, HIGH); 
    
 }
-
-
-
-
-
 
 
       Serial.print("RSSI: ");
@@ -205,5 +256,6 @@ if(child_voltage < 1) {
   } else {
     Serial.println("No reply, is there a listener around?");
   }
+
 
 }
