@@ -96,7 +96,7 @@ void loop() {
     digitalWrite(LED_BUILTIN, LOW);
     }
       // Send a reply
-      uint8_t data[] = "Here is the child's battery: " + voltage;
+      uint8_t data[] = voltage;
       rf95.send(data, sizeof(data));
       rf95.waitPacketSent();
       Serial.println("Sent a reply");
