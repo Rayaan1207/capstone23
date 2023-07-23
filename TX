@@ -188,9 +188,11 @@ void loop() {
 
 
      if(buttonState  == HIGH){
+  Serial.println("BUTTON IS PRESSED");
   // Control the LED
    // Control the LED
    if(voltage > 4) {
+
     digitalWrite(RED_LED, HIGH); 
     digitalWrite(BLUE_LED , HIGH); 
     digitalWrite(GREEN_LED, LOW);  
@@ -205,7 +207,6 @@ else {
     digitalWrite(BLUE_LED, HIGH); 
     digitalWrite(GREEN_LED, HIGH);  
 }
-    delay(3000);
 
 
 
@@ -225,6 +226,7 @@ else {
     digitalWrite(CHILD_BLUE_LED, HIGH); 
     digitalWrite(CHILD_GREEN_LED, HIGH);  
 }
+
     delay(3000);
  //turn off led
     digitalWrite(RED_LED, HIGH); 
