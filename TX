@@ -22,6 +22,10 @@
 #define GREEN_LED 10
 #define LED_BUTTON A
 
+#define CHILD_RED_LED 9
+#define CHILD_BLUE_LED 6
+#define CHILD_GREEN_LED 5
+
 int buttonState = 0;  // variable for reading the pushbutton status
 
 
@@ -42,10 +46,19 @@ void setup() {
   pinMode(BLUE_LED , OUTPUT);
   pinMode(GREEN_LED, OUTPUT);
 
+  pinMode(CHILD_RED_LED, OUTPUT);
+  pinMode(CHILD_BLUE_LED , OUTPUT);
+  pinMode(CHILD_GREEN_LED, OUTPUT);
+
+
  //setup led to default off
     digitalWrite(RED_LED, HIGH); 
     digitalWrite(BLUE_LED , HIGH); 
     digitalWrite(GREEN_LED, HIGH); 
+
+    digitalWrite(CHILD_RED_LED, HIGH); 
+    digitalWrite(CHILD_BLUE_LED , HIGH); 
+    digitalWrite(CHILD_GREEN_LED, HIGH); 
 
 
   pinMode(RFM95_RST, OUTPUT);
@@ -93,36 +106,7 @@ void loop() {
 
   buttonState = digitalRead(LED_BUTTON);
 
-  float voltage = analogRead(BATTERY_PIN);
-  voltage = voltage * (3.3 / 1024) * 2; // Assuming you have a 1:2 voltage divider
-  Serial.print("Battery Voltage: ");
-  Serial.print(voltage);
-  Serial.println(" V");
 
-if(buttonState  == HIGH){
-  // Control the LED
-  if(voltage > 4) {
-    digitalWrite(RED_LED, HIGH); 
-    digitalWrite(BLUE_LED , HIGH); 
-    digitalWrite(GREEN_LED, LOW);  
-  } 
-else if(voltage > 1 && voltage < 3.5) {
-    digitalWrite(RED_LED, HIGH); 
-    digitalWrite(BLUE_LED , LOW); 
-    digitalWrite(GREEN_LED, HIGH); 
-  } 
-else {
-    digitalWrite(RED_LED, LOW); 
-    digitalWrite(BLUE_LED, HIGH); 
-    digitalWrite(GREEN_LED, HIGH);  
-}
-    delay(3000);
- //turn off led
-    digitalWrite(RED_LED, HIGH); 
-    digitalWrite(BLUE_LED , HIGH); 
-    digitalWrite(GREEN_LED, HIGH); 
-   
-}
 
   Serial.println("Transmitting..."); // Send a message to rf95_server
 
@@ -146,8 +130,64 @@ else {
   if (rf95.waitAvailableTimeout(1000)) {
     // Should be a reply message for us now
     if (rf95.recv(buf, &len)) {
-      Serial.print("Got reply: ");
-      Serial.println((char*)buf);
+      Serial.print("Got reply and the voltage of the child: ");
+      
+      float child_voltage = (float*)buf;
+      float voltage = analogRead(BATTERY_PIN);
+      voltage = voltage * (3.3 / 1024) * 2; // Assuming you have a 1:2 voltage divider
+      Serial.print("Battery Voltage: ");
+      Serial.print(voltage);
+      Serial.println(" V");
+
+
+
+     if(buttonState  == HIGH){
+  // Control the LED
+  if(voltage > 4) {
+    digitalWrite(RED_LED, HIGH); 
+    digitalWrite(BLUE_LED , HIGH); 
+    digitalWrite(GREEN_LED, LOW);  
+  } 
+  if(child_voltage > 4) {
+    digitalWrite(CHILD_RED_LED, HIGH); 
+    digitalWrite(CHILD_BLUE_LED , HIGH); 
+    digitalWrite(CHILD_GREEN_LED, LOW);  
+  } 
+ if(voltage > 1 && voltage < 3.5) {
+    digitalWrite(RED_LED, HIGH); 
+    digitalWrite(BLUE_LED , LOW); 
+    digitalWrite(GREEN_LED, HIGH); 
+  } 
+ if(child_voltage > 1 && child_voltage < 3.5) {
+    digitalWrite(CHILD_RED_LED, HIGH); 
+    digitalWrite(CHILD_BLUE_LED , LOW); 
+    digitalWrite(CHILD_GREEN_LED, HIGH); 
+  } 
+
+if(voltage < 1) {
+    digitalWrite(RED_LED, LOW); 
+    digitalWrite(BLUE_LED, HIGH); 
+    digitalWrite(GREEN_LED, HIGH);  
+}
+if(child_voltage < 1) {
+    digitalWrite(CHILD_RED_LED, LOW); 
+    digitalWrite(CHILD_BLUE_LED, HIGH); 
+    digitalWrite(CHILD_GREEN_LED, HIGH);  
+}
+    delay(3000);
+ //turn off led
+    digitalWrite(RED_LED, HIGH); 
+    digitalWrite(BLUE_LED , HIGH); 
+    digitalWrite(GREEN_LED, HIGH); 
+   
+}
+
+
+
+
+
+
+
       Serial.print("RSSI: ");
       int16_t iRssi = rf95.lastRssi();
       if(iRssi < -40){
