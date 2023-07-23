@@ -133,6 +133,16 @@ int16_t packetnum = 0;  // packet counter, we increment per xmission
 
 
 void loop() {
+      float child_voltage = *((float*)buf);
+      float voltage = analogRead(BATTERY_PIN);
+      voltage = voltage * (3.3 / 1024) * 2; // Assuming you have a 1:2 voltage divider
+      Serial.print("ADULT Battery Voltage: ");
+      Serial.print(voltage);
+      Serial.println(" V");
+
+      Serial.print("CHILD Battery Voltage: ");
+      Serial.print(voltage);
+      Serial.println(" V");
 
 
   buttonState = digitalRead(LED_BUTTON);
@@ -178,7 +188,6 @@ else {
     digitalWrite(CHILD_GREEN_LED, HIGH);  
 }
 
-    delay(3000);
  //turn off led
     digitalWrite(RED_LED, HIGH); 
     digitalWrite(BLUE_LED , HIGH); 
@@ -223,17 +232,7 @@ else {
     if (rf95.recv(buf, &len)) {
       Serial.print("Got reply and the voltage of the child: ");
      
-      float child_voltage = *((float*)buf);
-      float voltage = analogRead(BATTERY_PIN);
-      voltage = voltage * (3.3 / 1024) * 2; // Assuming you have a 1:2 voltage divider
-      Serial.print("ADULT Battery Voltage: ");
-      Serial.print(voltage);
-      Serial.println(" V");
-
-      Serial.print("CHILD Battery Voltage: ");
-      Serial.print(voltage);
-      Serial.println(" V");
-
+     
 
 
 
