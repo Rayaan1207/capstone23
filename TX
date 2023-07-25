@@ -10,16 +10,9 @@
 #include <SPI.h>
 #include <RH_RF95.h>
 
-
-
-
-
-
 #define RFM95_CS   16
 #define RFM95_INT  21
 #define RFM95_RST  17
-
-
 
 
 #define BATTERY_PIN A0
@@ -27,23 +20,14 @@
 #define BLUE_LED 11
 #define GREEN_LED 10
 #define LED_BUTTON A1
-
+volatile bool buttonState = LOW;
 
 #define CHILD_RED_LED 9
 #define CHILD_BLUE_LED 6
 #define CHILD_GREEN_LED 5
 
-
-int buttonState = 0;  // variable for reading the pushbutton status
-
-
-
-
-
-
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 915.0
-
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
@@ -52,7 +36,7 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 void setup() {
 
 
-
+  attachInterrupt(digitalPinToInterrupt(LED_BUTTON), myISR, HIGH); // trigger when button pressed
 
   pinMode(BATTERY_PIN, INPUT);
   pinMode(LED_BUTTON, INPUT);
@@ -66,7 +50,6 @@ void setup() {
   pinMode(CHILD_RED_LED, OUTPUT);
   pinMode(CHILD_BLUE_LED , OUTPUT);
   pinMode(CHILD_GREEN_LED, OUTPUT);
-
 
 
 
@@ -130,43 +113,67 @@ void setup() {
 
 
 int16_t packetnum = 0;  // packet counter, we increment per xmission
-
+float child_voltage=0;
 
 void loop() {
-      uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-      
-      uint8_t len = sizeof(buf);
-      float child_voltage = *((float*)buf);
+    
+  Serial.println("Transmitting..."); // Send a message to rf95_server
+  char radiopacket[20] = "Hello World #      ";
+  itoa(packetnum++, radiopacket+13, 10);
+  Serial.print("Sending "); Serial.println(radiopacket);
+  radiopacket[19] = 0;
+
+
+  Serial.println("Sending...");
+  delay(10);
+  rf95.send((uint8_t *)radiopacket, 20);
+
+
+  Serial.println("Waiting for packet to complete...");
+  delay(10);
+  rf95.waitPacketSent();
+  // Now wait for a reply
+     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
+     uint8_t len = sizeof(buf);
+
+  Serial.println("Waiting for reply...");
+  if (rf95.waitAvailableTimeout(1000)) {
+    // Should be a reply message for us now
+    if (rf95.recv(buf, &len)) {
+      Serial.print("Got reply and the voltage of the child: ");
+        child_voltage = *((float*)buf);
+       Serial.print("CHILD Battery Voltage: ");
+       Serial.print(child_voltage);
+       Serial.println(" V");
+
+   
+    
       float voltage = analogRead(BATTERY_PIN);
       voltage = voltage * (3.3 / 1024) * 2; // Assuming you have a 1:2 voltage divider
       Serial.print("ADULT Battery Voltage: ");
       Serial.print(voltage);
       Serial.println(" V");
 
-      Serial.print("CHILD Battery Voltage: ");
-      Serial.print(child_voltage);
-      Serial.println(" V");
 
 
-  buttonState = digitalRead(LED_BUTTON);
-  if(buttonState  == 1){
+        if(buttonState  == 1){ 
   Serial.println("BUTTON IS PRESSED");
   // Control the LED
    // Control the LED
    if(voltage > 4) {
-    Serial.println("ADULT LED IS GREEN);
+    Serial.println("ADULT LED IS GREEN");
     digitalWrite(RED_LED, HIGH); 
     digitalWrite(BLUE_LED , HIGH); 
     digitalWrite(GREEN_LED, LOW);  
   } 
 else if(voltage > 1 && voltage < 3.5) {
-    Serial.println("ADULT LED IS YELLOW);
+    Serial.println("ADULT LED IS YELLOW");
     digitalWrite(RED_LED, HIGH); 
     digitalWrite(BLUE_LED , LOW); 
     digitalWrite(GREEN_LED, HIGH); 
   } 
 else {
-    Serial.println("ADULT LED IS YELLOW);
+    Serial.println("ADULT LED IS YELLOW");
     digitalWrite(RED_LED, LOW); 
     digitalWrite(BLUE_LED, HIGH); 
     digitalWrite(GREEN_LED, HIGH);  
@@ -191,10 +198,12 @@ else {
     digitalWrite(CHILD_GREEN_LED, HIGH);  
 }
 
+buttonState = LOW;
+delay(3000);
  //turn off led
     digitalWrite(RED_LED, HIGH); 
     digitalWrite(BLUE_LED , HIGH); 
-    digitalWrite(CHILD_GREEN_LED, HIGH); 
+    digitalWrite(GREEN_LED, HIGH); 
 
 
     digitalWrite(CHILD_RED_LED, HIGH); 
@@ -202,38 +211,6 @@ else {
     digitalWrite(CHILD_GREEN_LED, HIGH); 
    
 }
-
-
-
-
-
-  Serial.println("Transmitting..."); // Send a message to rf95_server
-
-
-  char radiopacket[20] = "Hello World #      ";
-  itoa(packetnum++, radiopacket+13, 10);
-  Serial.print("Sending "); Serial.println(radiopacket);
-  radiopacket[19] = 0;
-
-
-  Serial.println("Sending...");
-  delay(10);
-  rf95.send((uint8_t *)radiopacket, 20);
-
-
-  Serial.println("Waiting for packet to complete...");
-  delay(10);
-  rf95.waitPacketSent();
-  // Now wait for a reply
-  uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-  uint8_t len = sizeof(buf);
-
-
-  Serial.println("Waiting for reply...");
-  if (rf95.waitAvailableTimeout(1000)) {
-    // Should be a reply message for us now
-    if (rf95.recv(buf, &len)) {
-      Serial.print("Got reply and the voltage of the child: ");
      
      
 
@@ -263,4 +240,8 @@ else {
   }
 
 
+}
+
+void myISR() {
+    buttonState = HIGH;
 }
